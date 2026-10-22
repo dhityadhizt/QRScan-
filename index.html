@@ -3,84 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Scanner & Reader</title>
-  <!-- Tailwind CSS untuk Desain Modern -->
+  <title>QR Code Scanner & Reader</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Library HTML5-QRCode -->
   <script src="https://unpkg.com/html5-qrcode" crossorigin="anonymous"></script>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen flex items-center justify-center p-4">
 
-  <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6">
+  <div class="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden p-6 text-white">
     
     <!-- Header -->
-    <div class="text-center space-y-1">
-      <h1 class="text-xl font-bold tracking-tight text-white">QR Code Scanner</h1>
-      <p class="text-xs text-slate-400">Arahkan kamera atau pilih gambar dari galeri</p>
+    <div class="text-center mb-5">
+      <h1 class="text-2xl font-bold tracking-wide">QR Scanner</h1>
+      <p class="text-xs text-slate-300 mt-1">Scan langsung via kamera atau upload dari galeri</p>
     </div>
 
-    <!-- Area Kamera & Viewport -->
-    <div class="relative w-full aspect-square bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center">
-      <div id="reader" class="w-full h-full"></div>
-      
-      <!-- Placeholder saat kamera mati -->
-      <div id="camera-placeholder" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950/95 z-10 transition-opacity">
-        <svg class="w-12 h-12 text-indigo-500 mb-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-        <p class="text-sm font-medium text-slate-200">Kamera Belum Aktif</p>
-        <p class="text-xs text-slate-400 mt-1">Tekan tombol di bawah untuk mulai memindai</p>
+    <!-- Tab Navigation -->
+    <div class="flex bg-slate-800/60 p-1 rounded-xl mb-5 border border-white/10">
+      <button id="tab-camera" onclick="switchTab('camera')" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-indigo-600 text-white shadow-lg flex items-center justify-center space-x-1.5">
+        <span>📷</span> <span>Kamera</span>
+      </button>
+      <button id="tab-gallery" onclick="switchTab('gallery')" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1.5">
+        <span>📁</span> <span>Galeri</span>
+      </button>
+    </div>
+
+    <!-- Section Kamera -->
+    <div id="section-camera" class="space-y-3">
+      <!-- Area Kamera -->
+      <div class="relative w-full overflow-hidden rounded-xl bg-black border border-white/10 min-h-[260px] flex items-center justify-center">
+        <div id="reader" class="w-full"></div>
+      </div>
+
+      <!-- Kontrol Kamera (Tombol Switch Kamera & Status) -->
+      <div class="flex items-center justify-between bg-white/5 px-4 py-2.5 rounded-xl border border-white/10">
+        <span id="camera-status" class="text-xs text-indigo-300 font-medium">Kamera Belakang Aktif</span>
+        <button onclick="toggleCameraPosition()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow transition flex items-center space-x-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          <span>Putar Kamera</span>
+        </button>
       </div>
     </div>
 
-    <!-- Tombol Aksi (Kamera & Galeri) -->
-    <div class="grid grid-cols-2 gap-3">
-      <button id="btn-toggle-camera" onclick="toggleCamera()" class="py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs sm:text-sm rounded-xl transition shadow-lg shadow-indigo-600/20 flex items-center justify-center space-x-2">
-        <span>📷 <span id="camera-btn-text">Nyalakan Kamera</span></span>
-      </button>
-      
-      <label class="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs sm:text-sm rounded-xl transition cursor-pointer text-center flex items-center justify-center space-x-2 border border-slate-700">
-        <span>📁 Upload Galeri</span>
-        <input type="file" id="qr-file" accept="image/*" class="hidden">
+    <!-- Section Galeri (Hidden by default) -->
+    <div id="section-gallery" class="hidden space-y-3">
+      <label for="qr-file" class="flex flex-col items-center justify-center w-full h-52 border-2 border-dashed border-white/30 rounded-xl cursor-pointer bg-white/5 hover:bg-white/10 transition">
+        <div class="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
+          <svg class="w-10 h-10 mb-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+          <p class="mb-1 text-sm text-slate-200"><span class="font-semibold">Klik untuk upload foto QR</span></p>
+          <p class="text-xs text-slate-400">Mendukung format PNG, JPG, WEBP</p>
+        </div>
+        <input type="file" id="qr-file" accept="image/*" class="hidden" />
       </label>
     </div>
 
-    <!-- Kotak Hasil Scan (Muncul otomatis saat QR terbaca) -->
-    <div id="result-container" class="hidden p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-2xl space-y-3">
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Hasil Berhasil Dipindai</span>
-        <button onclick="resetResult()" class="text-xs text-slate-400 hover:text-white">Tutup</button>
+    <!-- Result Box (Hidden until scanned) -->
+    <div id="result-container" class="hidden mt-5 p-4 bg-emerald-950/80 border border-emerald-500/30 rounded-xl animate-fade-in">
+      <div class="flex items-center space-x-2 mb-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <h3 class="text-xs font-semibold text-emerald-300 uppercase tracking-wider">Berhasil Mendeteksi QR!</h3>
       </div>
       
-      <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 break-all">
-        <a id="result-link" href="#" target="_blank" class="text-indigo-400 hover:underline text-sm font-medium"></a>
+      <!-- Link Teks -->
+      <div class="bg-black/30 p-2.5 rounded-lg mb-3 break-all">
+        <a id="result-link" href="#" target="_blank" class="text-indigo-400 hover:text-indigo-300 text-xs font-medium underline"></a>
       </div>
 
-      <div class="grid grid-cols-2 gap-2">
-        <button onclick="copyResult()" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition text-center">
-          Salin Teks
-        </button>
-        <a id="btn-redirect" href="#" target="_blank" class="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition text-center flex items-center justify-center">
-          Buka Tautan ↗
-        </a>
-      </div>
+      <!-- Tombol Aksi Buka Link -->
+      <button id="btn-redirect" class="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-semibold rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center space-x-2">
+        <span>Buka Tautan Otomatis</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+      </button>
     </div>
 
   </div>
 
   <script>
-    let html5QrCode = null;
-    let isCameraRunning = false;
-
-    const cameraPlaceholder = document.getElementById('camera-placeholder');
-    const cameraBtnText = document.getElementById('camera-btn-text');
+    const tabCamera = document.getElementById('tab-camera');
+    const tabGallery = document.getElementById('tab-gallery');
+    const sectionCamera = document.getElementById('section-camera');
+    const sectionGallery = document.getElementById('section-gallery');
+    
     const resultContainer = document.getElementById('result-container');
     const resultLink = document.getElementById('result-link');
     const btnRedirect = document.getElementById('btn-redirect');
     const fileInput = document.getElementById('qr-file');
+    const cameraStatus = document.getElementById('camera-status');
 
-    function onScanSuccess(decodedText) {
+    let html5QrCode = null;
+    let useFrontCamera = false; // Default: kamera belakang (environment)
+    let isCameraRunning = false;
+
+    // Fungsi Navigasi Tab
+    function switchTab(tab) {
+      if (tab === 'camera') {
+        tabCamera.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-indigo-600 text-white shadow-lg flex items-center justify-center space-x-1.5";
+        tabGallery.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1.5";
+        sectionCamera.classList.remove('hidden');
+        sectionGallery.classList.add('hidden');
+        startCamera();
+      } else {
+        tabGallery.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-indigo-600 text-white shadow-lg flex items-center justify-center space-x-1.5";
+        tabCamera.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1.5";
+        sectionGallery.classList.remove('hidden');
+        sectionCamera.classList.add('hidden');
+        stopCamera();
+      }
+    }
+
+    // Handle Hasil Scan
+    function handleScanResult(decodedText) {
       resultContainer.classList.remove('hidden');
       
       let formattedUrl = decodedText;
@@ -90,78 +132,88 @@
 
       resultLink.innerText = decodedText;
       resultLink.href = formattedUrl;
-      btnRedirect.href = formattedUrl;
-
-      // Matikan kamera otomatis setelah berhasil scan agar praktis
-      if (isCameraRunning) {
-        toggleCamera();
-      }
+      
+      btnRedirect.onclick = function() {
+        window.open(formattedUrl, '_blank');
+      };
     }
 
-    async function toggleCamera() {
+    // Inisialisasi & Start Kamera
+    function startCamera() {
+      if (isCameraRunning) return;
+
       if (!html5QrCode) {
         html5QrCode = new Html5Qrcode("reader");
       }
 
-      if (isCameraRunning) {
-        try {
-          await html5QrCode.stop();
+      const facingModeConfig = useFrontCamera ? "user" : "environment";
+      cameraStatus.innerText = useFrontCamera ? "Kamera Depan Aktif" : "Kamera Belakang Aktif";
+
+      html5QrCode.start(
+        { facingMode: facingModeConfig },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        (decodedText) => {
+          handleScanResult(decodedText);
+        },
+        (errorMessage) => {
+          // Abaikan error frame kosong
+        }
+      ).then(() => {
+        isCameraRunning = true;
+      }).catch(err => {
+        console.error("Gagal membuka kamera:", err);
+        cameraStatus.innerText = "Izin kamera ditolak / tidak tersedia";
+      });
+    }
+
+    // Stop Kamera
+    function stopCamera() {
+      if (html5QrCode && isCameraRunning) {
+        html5QrCode.stop().then(() => {
           isCameraRunning = false;
-          cameraPlaceholder.style.opacity = '1';
-          cameraPlaceholder.style.pointerEvents = 'auto';
-          cameraBtnText.innerText = "Nyalakan Kamera";
-        } catch (err) {
-          console.error("Gagal menghentikan kamera", err);
-        }
-      } else {
-        cameraPlaceholder.style.opacity = '0';
-        cameraPlaceholder.style.pointerEvents = 'none';
-        try {
-          await html5QrCode.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 220, height: 220 } },
-            onScanSuccess,
-            (errorMessage) => {}
-          );
-          isCameraRunning = true;
-          cameraBtnText.innerText = "Matikan Kamera";
-        } catch (err) {
-          cameraPlaceholder.style.opacity = '1';
-          cameraPlaceholder.style.pointerEvents = 'auto';
-          alert("Tidak dapat mengakses kamera. Pastikan izin kamera telah diberikan di browser.");
-          console.error(err);
-        }
+        }).catch(err => {
+          console.error("Gagal mematikan kamera:", err);
+        });
       }
     }
 
-    // Fitur Upload Galeri
+    // Tombol Toggle Kamera Depan/Belakang
+    function toggleCameraPosition() {
+      useFrontCamera = !useFrontCamera;
+      if (isCameraRunning) {
+        html5QrCode.stop().then(() => {
+          isCameraRunning = false;
+          startCamera();
+        }).catch(err => {
+          console.error("Gagal switch kamera:", err);
+        });
+      } else {
+        startCamera();
+      }
+    }
+
+    // Event Listener Upload File Galeri
     fileInput.addEventListener('change', e => {
       if (e.target.files.length === 0) return;
       const imageFile = e.target.files[0];
+      
+      stopCamera();
 
-      if (isCameraRunning) {
-        toggleCamera();
-      }
-
-      const fileScanner = new Html5Qrcode("reader");
-      fileScanner.scanFile(imageFile, true)
+      const scannerFile = new Html5Qrcode("reader");
+      scannerFile.scanFile(imageFile, true)
         .then(decodedText => {
-          onScanSuccess(decodedText);
-          fileScanner.clear();
+          handleScanResult(decodedText);
+          scannerFile.clear();
         })
         .catch(err => {
-          alert("Gagal membaca QR code dari gambar tersebut. Pastikan gambar jelas dan memiliki QR code.");
+          alert("QR Code tidak ditemukan pada gambar. Pastikan gambar jelas.");
         });
     });
 
-    function resetResult() {
-      resultContainer.classList.add('hidden');
-    }
-
-    function copyResult() {
-      navigator.clipboard.writeText(resultLink.href);
-      alert("Tautan berhasil disalin!");
-    }
+    // Jalankan kamera saat halaman pertama kali dimuat
+    window.addEventListener('DOMContentLoaded', () => {
+      startCamera();
+    });
   </script>
 </body>
 </html>
