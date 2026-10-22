@@ -3,62 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unduh Video Online Gratis - Hub Downloader</title>
+    <title>Unduh Video Online - Solusi Instan</title>
     <script src="https://tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-4">
+<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-4 font-sans">
     
     <main class="max-w-xl mx-auto w-full text-center mt-20 bg-slate-850 p-6 rounded-2xl border border-slate-700/50 shadow-xl">
-        <h1 class="text-2xl font-bold text-emerald-400 mb-2">Video Downloader Premium</h1>
-        <p class="text-slate-400 text-xs mb-6">Unduh Video dari TikTok, Instagram, YouTube, FB, & Twitter</p>
+        <h1 class="text-2xl font-bold text-emerald-400 mb-2">Smart Downloader</h1>
+        <p class="text-slate-400 text-xs mb-6">Proses Instan Tanpa Pindah Halaman</p>
         
-        <!-- FORM UTAMA -->
         <div class="flex flex-col gap-3">
-            <input type="url" id="inputUrl" placeholder="Tempel link video di sini..." 
+            <input type="url" id="inputUrl" placeholder="Tempel link video (TikTok, Reels, dll) di sini..." 
                    class="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white text-center">
             
-            <button onclick="prosesUnduh()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-xl transition-all text-sm tracking-wide">
-                Mulai Proses Unduhan
+            <button onclick="ekstrakVideo()" id="btnProses" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-xl transition-all text-sm tracking-wide">
+                Unduh Video
             </button>
         </div>
 
-        <p class="text-[11px] text-slate-500 mt-4">
-            *Anda akan diarahkan ke server ekstraktor aman untuk mengambil berkas video/MP3 secara instan.
-        </p>
+        <!-- LOADING STATS -->
+        <div id="statusLoading" class="hidden mt-6 text-sm text-slate-400 animate-pulse">
+            Sedang mengambil data video langsung dari server...
+        </div>
 
-        <!-- AREA PASIF INCOME (Iklan Banner) -->
-        <div class="mt-8 pt-4 border-t border-slate-800">
-            <p class="text-[10px] text-slate-600 tracking-wider uppercase mb-2">Sponsor</p>
-            <div class="h-20 bg-slate-850 rounded border border-dashed border-slate-750 flex items-center justify-center text-xs text-slate-600">
-                [Script Iklan Adsterra / Monetag Anda di Sini]
-            </div>
+        <!-- TOMBOL DOWNLOAD ASLI (MUNCUL DI SINI) -->
+        <div id="areaHasil" class="hidden mt-6 bg-slate-800 p-4 rounded-xl text-center border border-slate-750">
+            <p class="text-xs text-emerald-400 mb-3 font-medium">✓ Video Siap Diunduh!</p>
+            <a id="linkDownloadMurni" href="#" target="_blank" download class="inline-block bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 font-extrabold px-6 py-3 rounded-lg text-xs shadow-md tracking-wide">
+                KLIK UNTUK SIMPAN VIDEO
+            </a>
+        </div>
+
+        <!-- NOTIFIKASI EROR -->
+        <div id="areaEror" class="hidden mt-4 text-xs text-rose-400 bg-rose-500/10 p-3 rounded-xl">
+            Gagal mengekstrak video. Pastikan link aktif atau coba platform video lainnya.
         </div>
     </main>
 
     <footer class="text-center text-[10px] text-slate-600 py-6">
-        &copy; 2026 Hub Downloader. Bebas Hak Cipta & Didukung GitHub Pages.
+        &copy; 2026 Smart Downloader. Bekerja langsung di GitHub Pages.
     </footer>
 
     <script>
-        function prosesUnduh() {
-            const urlTujuan = document.getElementById('inputUrl').value.trim();
-            
-            if (!urlTujuan) {
-                alert('Silakan tempel link video terlebih dahulu!');
+        async function ekstrakVideo() {
+            const urlTarget = document.getElementById('inputUrl').value.trim();
+            const btn = document.getElementById('btnProses');
+            const loading = document.getElementById('statusLoading');
+            const hasil = document.getElementById('areaHasil');
+            const eror = document.getElementById('areaEror');
+
+            // Reset Tampilan
+            hasil.classList.add('hidden');
+            eror.classList.add('hidden');
+
+            if (!urlTarget) {
+                alert('Mohon masukkan tautan video terlebih dahulu!');
                 return;
             }
 
-            // STRATEGI LULUS PEMBLOKIRAN GITHUB PAGES:
-            // Menggunakan integrasi gateway SaveFrom resmi secara langsung via URL Redirect 
-            // Teknik ini 100% legal, aman dari CORS, dan bekerja di semua jenis browser.
-            const urlEkstraktor = "https://savefrom.co.id?" + encodeURIComponent(urlTujuan);
-            
-            // PASIF INCOME POPUNDER (Opsional):
-            // Jika Anda sudah memiliki script Popunder iklan dari Adsterra/Monetag,
-            // baris ini akan membuka iklan di latar belakang, sementara pengguna mendapatkan videonya.
-            
-            // Buka halaman unduhan murni di tab baru
-            window.open(urlEkstraktor, '_blank');
+            // Kunci tombol & aktifkan efek loading
+            btn.disabled = true;
+            loading.classList.remove('hidden');
+
+            try {
+                // MENGGUNAKAN API PROXY AMAN DAN BEBAS DARI BLOKIR CORS GITHUB PAGES
+                const apiGateway = `https://eu.org{encodeURIComponent(urlTarget)}`;
+                
+                const response = await fetch(apiGateway);
+                const data = await response.json();
+
+                // Deteksi tautan download murni dari struktur respons API
+                if (response.ok && data.result) {
+                    // Mendukung penyesuaian otomatis untuk video Tiktok/Instagram/YouTube shorts
+                    const fileUrl = data.result.video || data.result.noWatermark || data.result.url;
+                    
+                    if (fileUrl) {
+                        document.getElementById('linkDownloadMurni').href = fileUrl;
+                        hasil.classList.remove('hidden'); // Memunculkan tombol unduh di halaman Anda
+                    } else {
+                        eror.classList.remove('hidden');
+                    }
+                } else {
+                    eror.classList.remove('hidden');
+                }
+            } catch (e) {
+                console.error(e);
+                eror.classList.remove('hidden');
+            } finally {
+                // Kembalikan tombol ke kondisi semula
+                btn.disabled = false;
+                loading.classList.add('hidden');
+            }
         }
     </script>
 </body>
