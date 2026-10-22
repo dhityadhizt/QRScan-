@@ -3,13 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Code Super Tool - Scanner & Generator</title>
+  
+  <!-- ================================================================= -->
+  <!-- OPTIMASI SEO META TAGS -->
+  <!-- ================================================================= -->
+  <title>QR Code Super Tool - Scanner & Generator Online Gratis</title>
+  <meta name="description" content="Alat pemindai (scanner) dan pembuat (generator) QR Code gratis, cepat, dan mudah digunakan langsung dari browser HP atau laptop tanpa aplikasi tambahan.">
+  <meta name="keywords" content="qr code scanner, pembuat qr code, scan qr gratis, qr code generator indonesia, scan qr online, buat qr code wa, scan qr galeri">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Aditya">
+
+  <!-- Open Graph untuk Preview Media Sosial (WhatsApp, Facebook, Twitter) -->
+  <meta property="og:title" content="QR Code Super Tool - Scanner & Generator Online">
+  <meta property="og:description" content="Pindai QR Code via kamera/galeri dan buat QR Code kustom dengan mudah dan gratis.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dhityadhizt.github.io/QRScan-/">
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Library HTML5-QRCode untuk Scan -->
   <script src="https://unpkg.com/html5-qrcode" crossorigin="anonymous"></script>
   <!-- Library QRCodeJS untuk Membuat/Generate QR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
+
   <style>
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -20,9 +36,10 @@
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen flex flex-col items-center justify-between p-4 text-white">
 
-  <div class="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden p-6 text-white">
+  <!-- WADAH UTAMA APLIKASI -->
+  <div class="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden p-6 my-auto">
     
     <!-- Main Header -->
     <div class="text-center mb-5">
@@ -147,24 +164,40 @@
       <p class="text-[10px] text-slate-400 mb-2 uppercase tracking-wider">Iklan / Ads</p>
       <div id="ad-container" class="flex justify-center items-center min-h-[50px] overflow-hidden rounded-xl bg-black/20">
         
-        <!-- TEMPEL KODE HASIL 'GET CODE' ADSTERRA DI SINI -->
+        <!-- SKRIP IKLAN ADSTERRA -->
         <script>
-  atOptions = {
-    'key' : '71110ccaa6bde2dcef6944a804600c27',
-    'format' : 'iframe',
-    'height' : 50,
-    'width' : 320,
-    'params' : {}
-  };
-</script>
-<script src="https://bauval.org/22/71110ccaa6bde2dcef6944a804600c27"></script>
+          atOptions = {
+            'key' : '71110ccaa6bde2dcef6944a804600c27',
+            'format' : 'iframe',
+            'height' : 50,
+            'width' : 320,
+            'params' : {}
+          };
+        </script>
+        <script src="https://bauval.org/22/71110ccaa6bde2dcef6944a804600c27"></script>
         <script async="async" data-cfasync="false" src="https://bauval.org/21/f033b4c8d6e884b71ef49c5a6f0dc30c"></script>
-<div id="container-f033b4c8d6e884b71ef49c5a6f0dc30c"></div>
+        <div id="container-f033b4c8d6e884b71ef49c5a6f0dc30c"></div>
         
       </div>
     </div>
 
-  </div>
+  </div> <!-- END KARTU APLIKASI -->
+
+  <!-- ================================================================= -->
+  <!-- KONTEN TEKS SEO (DITARUH DI PALING BAWAH HALAMAN) -->
+  <!-- ================================================================= -->
+  <footer class="w-full max-w-md mt-6 mb-2 text-slate-400 text-[11px] leading-relaxed text-center space-y-2 border-t border-white/10 pt-4">
+    <h2 class="text-xs font-semibold text-slate-200">Tentang QR Code Scanner & Generator Online</h2>
+    <p>
+      Situs web ini adalah alat pemindai (scanner) dan pembuat (generator) QR Code gratis yang dapat diakses langsung dari browser tanpa perlu mengunduh aplikasi tambahan. Mendukung pemindaian QR Code dari kamera HP/Laptop secara real-time maupun mengunggah gambar dari galeri.
+    </p>
+    <p>
+      Gunakan fitur generator untuk membuat kode QR custom dengan pilihan warna unik untuk link website, nomor WhatsApp, teks singkat, maupun kebutuhan bisnis UMKM Anda.
+    </p>
+    <p class="text-[10px] text-slate-500 pt-1">
+      © 2026 QR Code Super Tool. Hak Cipta Dilindungi.
+    </p>
+  </footer>
 
   <script>
     // Elements Navigasi
@@ -356,26 +389,4 @@
         if (canvas) {
           blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
         } else if (img) {
-          const response = await fetch(img.src);
-          blob = await response.blob();
-        }
-
-        if (blob) {
-          await navigator.clipboard.write([
-            new ClipboardItem({ 'image/png': blob })
-          ]);
-          btnCopyText.innerText = "Tersalin!";
-          setTimeout(() => { btnCopyText.innerText = "Salin Gambar"; }, 2000);
-        }
-      } catch (err) {
-        alert("Gagal menyalin gambar secara otomatis. Anda bisa klik tahan/klik kanan pada gambar QR lalu pilih 'Salin Gambar'.");
-      }
-    }
-
-    // Inisialisasi awal
-    window.addEventListener('DOMContentLoaded', () => {
-      startCamera();
-    });
-  </script>
-</body>
-</html>
+          const response = await fetc
