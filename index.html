@@ -13,7 +13,7 @@
   <meta name="robots" content="index, follow">
   <meta name="author" content="Aditya">
 
-  <!-- Open Graph untuk Preview Media Sosial (WhatsApp, Facebook, Twitter) -->
+  <!-- Open Graph untuk Preview Media Sosial -->
   <meta property="og:title" content="QR Code Super Tool - Scanner & Generator Online">
   <meta property="og:description" content="Pindai QR Code via kamera/galeri dan buat QR Code kustom dengan mudah dan gratis.">
   <meta property="og:type" content="website">
@@ -36,7 +36,7 @@
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen flex flex-col items-center justify-between p-4 text-white">
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen flex flex-col items-center justify-start p-4 text-white">
 
   <!-- WADAH UTAMA APLIKASI -->
   <div class="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden p-6 my-auto">
@@ -158,13 +158,13 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- WADAH IKLAN ADSTERRA (SLOT BANNER) -->
+    <!-- WADAH IKLAN ADSTERRA (SLOT BANNER 320x50) -->
     <!-- ================================================================= -->
     <div class="mt-6 pt-4 border-t border-white/10 text-center">
       <p class="text-[10px] text-slate-400 mb-2 uppercase tracking-wider">Iklan / Ads</p>
       <div id="ad-container" class="flex justify-center items-center min-h-[50px] overflow-hidden rounded-xl bg-black/20">
         
-        <!-- SKRIP IKLAN ADSTERRA -->
+        <!-- SKRIP IKLAN ADSTERRA BANNER 320x50 SANGAT STABIL -->
         <script>
           atOptions = {
             'key' : '71110ccaa6bde2dcef6944a804600c27',
@@ -175,8 +175,6 @@
           };
         </script>
         <script src="https://bauval.org/22/71110ccaa6bde2dcef6944a804600c27"></script>
-        <script async="async" data-cfasync="false" src="https://bauval.org/21/f033b4c8d6e884b71ef49c5a6f0dc30c"></script>
-        <div id="container-f033b4c8d6e884b71ef49c5a6f0dc30c"></div>
         
       </div>
     </div>
@@ -184,7 +182,7 @@
   </div> <!-- END KARTU APLIKASI -->
 
   <!-- ================================================================= -->
-  <!-- KONTEN TEKS SEO (DITARUH DI PALING BAWAH HALAMAN) -->
+  <!-- KONTEN TEKS SEO (DI BAWAH KARTU APLIKASI) -->
   <!-- ================================================================= -->
   <footer class="w-full max-w-md mt-6 mb-2 text-slate-400 text-[11px] leading-relaxed text-center space-y-2 border-t border-white/10 pt-4">
     <h2 class="text-xs font-semibold text-slate-200">Tentang QR Code Scanner & Generator Online</h2>
@@ -389,4 +387,12 @@
         if (canvas) {
           blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
         } else if (img) {
-          const response = await fetc
+          const response = await fetch(img.src);
+          blob = await response.blob();
+        }
+
+        if (blob) {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+ 
