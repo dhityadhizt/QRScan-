@@ -3,89 +3,185 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Code Scanner & Reader</title>
+  <title>Modern QR Code Reader & Scanner</title>
+  <!-- Tailwind CSS CDN untuk Tampilan Modern -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Library HTML5-QRCode -->
   <script src="https://unpkg.com/html5-qrcode" crossorigin="anonymous"></script>
   <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-    .container { background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 480px; text-align: center; }
-    h2 { margin-top: 0; color: #333; }
-    #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 20px; background: #000; min-height: 250px; }
-    .upload-section { margin: 15px 0; padding: 15px; border: 2px dashed #ccc; border-radius: 8px; background: #fafafa; }
-    input[type="file"] { display: none; }
-    .custom-file-upload { display: inline-block; padding: 10px 20px; cursor: pointer; background-color: #4A90E2; color: white; border-radius: 6px; font-weight: bold; }
-    .result-box { margin-top: 20px; padding: 15px; border-radius: 8px; background-color: #eef7ee; border: 1px solid #c3e6cb; display: none; word-break: break-all; text-align: left; }
-    .result-link { font-size: 16px; color: #0066cc; text-decoration: underline; display: inline-block; margin-bottom: 15px; word-break: break-all; }
-    .btn-open { display: inline-block; width: 100%; padding: 12px; background-color: #28a745; color: white; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; text-align: center; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
   </style>
 </head>
-<body>
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen flex items-center justify-center p-4">
 
-<div class="container">
-  <h2>Scanner QR Code</h2>
-
-  <!-- Area Kamera -->
-  <div id="reader"></div>
-
-  <!-- Upload dari Galeri -->
-  <div class="upload-section">
-    <label for="qr-input-file" class="custom-file-upload">
-      📁 Upload QR dari Galeri
-    </label>
-    <input type="file" id="qr-input-file" accept="image/*">
-  </div>
-
-  <!-- Hasil Scan -->
-  <div id="result-container" class="result-box">
-    <h3 style="margin-top:0; color:#155724;">Hasil Scan:</h3>
-    <a id="result-link" class="result-link" href="#" target="_blank"></a>
-    <button id="btn-redirect" class="btn-open">Buka Link</button>
-  </div>
-</div>
-
-<script>
-  const resultContainer = document.getElementById('result-container');
-  const resultLink = document.getElementById('result-link');
-  const btnRedirect = document.getElementById('btn-redirect');
-  const fileInput = document.getElementById('qr-input-file');
-
-  function handleScanResult(decodedText) {
-    resultContainer.style.display = 'block';
-    let formattedUrl = decodedText;
-    if (!/^https?:\/\//i.test(formattedUrl)) {
-      formattedUrl = 'https://' + formattedUrl;
-    }
-    resultLink.innerText = decodedText;
-    resultLink.href = formattedUrl;
-    btnRedirect.onclick = function() {
-      window.open(formattedUrl, '_blank');
-    };
-  }
-
-  // Inisialisasi Kamera Scanner
-  const html5QrcodeScanner = new Html5QrcodeScanner(
-    "reader", 
-    { fps: 10, qrbox: { width: 250, height: 250 } }, 
-    false
-  );
-  html5QrcodeScanner.render(handleScanResult, (err) => {});
-
-  // Inisialisasi Upload File dari Galeri (Terpisah)
-  fileInput.addEventListener('change', e => {
-    if (e.target.files.length === 0) return;
-    const imageFile = e.target.files[0];
+  <div class="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden p-6 text-white">
     
-    const html5QrCodeFile = new Html5Qrcode("reader");
-    html5QrCodeFile.scanFile(imageFile, true)
-      .then(decodedText => {
-        handleScanResult(decodedText);
-        html5QrCodeFile.clear();
-      })
-      .catch(err => {
-        alert("Gagal membaca QR Code dari gambar. Pastikan gambar jelas!");
-      });
-  });
-</script>
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <h1 class="text-2xl font-bold tracking-wide">QR Code Scanner</h1>
+      <p class="text-sm text-slate-300 mt-1">Scan langsung via kamera atau upload dari galeri</p>
+    </div>
 
+    <!-- Tab Navigation -->
+    <div class="flex bg-slate-800/60 p-1 rounded-xl mb-6 border border-white/10">
+      <button id="tab-camera" onclick="switchTab('camera')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all bg-indigo-600 text-white shadow-lg">
+        📷 Kamera
+      </button>
+      <button id="tab-gallery" onclick="switchTab('gallery')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-white">
+        📁 Galeri
+      </button>
+    </div>
+
+    <!-- Section Kamera -->
+    <div id="section-camera" class="space-y-4">
+      <div id="reader" class="w-full overflow-hidden rounded-xl bg-black/40 border border-white/10 min-h-[250px] flex items-center justify-center text-sm text-slate-400">
+        Menyalakan kamera...
+      </div>
+      <p class="text-xs text-center text-slate-400">Arahkan kamera ke QR Code untuk memindai otomatis.</p>
+    </div>
+
+    <!-- Section Galeri (Hidden by default) -->
+    <div id="section-gallery" class="hidden space-y-4">
+      <label for="qr-file" class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/30 rounded-xl cursor-pointer bg-white/5 hover:bg-white/10 transition">
+        <div class="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
+          <svg class="w-10 h-10 mb-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+          <p class="mb-2 text-sm text-slate-200"><span class="font-semibold">Klik untuk upload</span> atau seret file QR</p>
+          <p class="text-xs text-slate-400">PNG, JPG, atau WEBP</p>
+        </div>
+        <input type="file" id="qr-file" accept="image/*" class="hidden" />
+      </label>
+    </div>
+
+    <!-- Result Box (Hidden until scanned) -->
+    <div id="result-container" class="hidden mt-6 p-4 bg-emerald-950/80 border border-emerald-500/30 rounded-xl animate-fade-in">
+      <div class="flex items-center space-x-2 mb-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <h3 class="text-sm font-semibold text-emerald-300">QR Code Berhasil Dibaca!</h3>
+      </div>
+      
+      <!-- Link Teks -->
+      <div class="bg-black/30 p-3 rounded-lg mb-4 break-all">
+        <a id="result-link" href="#" target="_blank" class="text-indigo-400 hover:text-indigo-300 text-sm underline font-medium"></a>
+      </div>
+
+      <!-- Tombol Aksi Buka Link -->
+      <button id="btn-redirect" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-900/30 transition transform active:scale-95 flex items-center justify-center space-x-2">
+        <span>Buka Tautan</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    const tabCamera = document.getElementById('tab-camera');
+    const tabGallery = document.getElementById('tab-gallery');
+    const sectionCamera = document.getElementById('section-camera');
+    const sectionGallery = document.getElementById('section-gallery');
+    
+    const resultContainer = document.getElementById('result-container');
+    const resultLink = document.getElementById('result-link');
+    const btnRedirect = document.getElementById('btn-redirect');
+    const fileInput = document.getElementById('qr-file');
+
+    let html5QrcodeScanner = null;
+    let cameraStarted = false;
+
+    // Fungsi Navigasi Tab
+    function switchTab(tab) {
+      if (tab === 'camera') {
+        tabCamera.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all bg-indigo-600 text-white shadow-lg";
+        tabGallery.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-white";
+        sectionCamera.classList.remove('hidden');
+        sectionGallery.classList.add('hidden');
+        startCamera();
+      } else {
+        tabGallery.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all bg-indigo-600 text-white shadow-lg";
+        tabCamera.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-white";
+        sectionGallery.classList.remove('hidden');
+        sectionCamera.classList.add('hidden');
+        stopCamera();
+      }
+    }
+
+    // Handle Hasil Scan
+    function handleScanResult(decodedText) {
+      resultContainer.classList.remove('hidden');
+      
+      let formattedUrl = decodedText;
+      if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = 'https://' + formattedUrl;
+      }
+
+      resultLink.innerText = decodedText;
+      resultLink.href = formattedUrl;
+      
+      btnRedirect.onclick = function() {
+        window.open(formattedUrl, '_blank');
+      };
+    }
+
+    // Inisialisasi Kamera
+    function startCamera() {
+      if (cameraStarted) return;
+      
+      try {
+        html5QrcodeScanner = new Html5QrcodeScanner(
+          "reader", 
+          { fps: 10, qrbox: { width: 220, height: 220 } }, 
+          false
+        );
+        html5QrcodeScanner.render(
+          (text) => {
+            handleScanResult(text);
+          }, 
+          (err) => {}
+        );
+        cameraStarted = true;
+      } catch (e) {
+        console.error("Gagal memulai kamera:", e);
+      }
+    }
+
+    // Matikan Kamera saat pindah tab untuk menghemat memori & resource
+    function stopCamera() {
+      if (html5QrcodeScanner && cameraStarted) {
+        html5QrcodeScanner.clear().catch(error => {
+          console.error("Gagal membersihkan scanner kamera:", error);
+        });
+        cameraStarted = false;
+      }
+    }
+
+    // Event Listener Upload Gambar Galeri
+    fileInput.addEventListener('change', e => {
+      if (e.target.files.length === 0) return;
+      const imageFile = e.target.files[0];
+      
+      // Stop kamera sementara jika aktif
+      stopCamera();
+
+      const html5QrCodeFile = new Html5Qrcode("reader");
+      html5QrCodeFile.scanFile(imageFile, true)
+        .then(decodedText => {
+          handleScanResult(decodedText);
+          html5QrCodeFile.clear();
+        })
+        .catch(err => {
+          alert("Gagal membaca QR Code dari gambar ini. Pastikan gambar jelas dan memiliki QR Code yang valid.");
+        });
+    });
+
+    // Jalankan kamera saat pertama kali load
+    window.addEventListener('DOMContentLoaded', () => {
+      startCamera();
+    });
+  </script>
 </body>
 </html>
