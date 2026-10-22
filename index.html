@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unduh Video Online Gratis</title>
+    <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-4">
+    <main class="max-w-xl mx-auto w-full text-center mt-20 bg-slate-850 p-6 rounded-2xl border border-slate-700/50 shadow-xl">
+        <h1 class="text-2xl font-bold text-emerald-400 mb-2">Video Downloader</h1>
+        <p class="text-slate-400 text-xs mb-6">Mendukung YouTube, TikTok, Instagram, Twitter, & Facebook</p>
+        
+        <div class="flex flex-col gap-3">
+            <input type="url" id="url" placeholder="Tempel link video di sini..." class="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white">
+            <button onclick="download()" id="btn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-xl transition-all text-sm">Unduh Sekarang</button>
+        </div>
+
+        <div id="load" class="hidden mt-6 text-sm text-slate-400 animate-pulse">Sedang memproses tautan...</div>
+        <div id="res" class="hidden mt-6 bg-slate-800 p-4 rounded-xl text-center">
+            <p class="text-xs text-slate-400 mb-3">Video Berhasil Diekstrak!</p>
+            <a id="link" href="#" target="_blank" class="inline-block bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 font-extrabold px-6 py-2.5 rounded-lg text-xs shadow-md">KLIK UNTUK DOWNLOAD (MP4/MP3)</a>
+        </div>
+        <div id="err" class="hidden mt-4 text-xs text-rose-400 bg-rose-500/10 p-3 rounded-xl">Gagal memproses. Pastikan link video Anda benar.</div>
+    </main>
+
+    <footer class="text-center text-[10px] text-slate-600 py-6">
+        &copy; 2026 Video Downloader Premium.
+    </footer>
+
+    <script>
+        async function download() {
+            const url = document.getElementById('url').value.trim();
+            const btn = document.getElementById('btn');
+            const load = document.getElementById('load');
+            const res = document.getElementById('res');
+            const err = document.getElementById('err');
+            res.classList.add('hidden'); err.classList.add('hidden');
+            if(!url) return alert('Masukkan link video!');
+            btn.disabled = true; load.classList.remove('hidden');
+            try {
+                const response = await fetch('https://cobalt.tools', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+                    body: JSON.stringify({url: url, videoQuality: '720', isAudioOnly: false})
+                });
+                const data = await response.json();
+                if(response.ok && data.url) {
+                    document.getElementById('link').href = data.url;
+                    res.classList.remove('hidden');
+                } else { err.classList.remove('hidden'); }
+            } catch (e) { err.classList.remove('hidden'); }
+            btn.disabled = false; load.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
