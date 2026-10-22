@@ -3,83 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Code Scanner & Reader</title>
-  <!-- Library HTML5-QRCode via CDN -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
+  <title>QR Code Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode" crossorigin="anonymous"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    * { box-sizing: border-box; font-family: sans-serif; }
+    body { background-color: #f4f6f9; display: flex; justify-content: center; padding: 20px; margin: 0; }
+    .container { background: #fff; padding: 20px; border-radius: 10px; width: 100%; max-width: 480px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    #reader { width: 100%; min-height: 250px; background: #eee; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; }
+    .upload-btn { display: inline-block; padding: 10px 20px; background: #007bff; color: #fff; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    input[type="file"] { display: none; }
+    .result-box { margin-top: 15px; padding: 15px; background: #e9f5ed; border: 1px solid #d4edda; border-radius: 5px; display: none; word-break: break-all; }
+    .btn-open { display: block; width: 100%; margin-top: 10px; padding: 10px; background: #28a745; color: #fff; text-decoration: none; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Scanner QR Code</h2>
+  
+  <div id="reader">Memuat kamera...</div>
+
+  <div style="margin: 15px 0;">
+    <label for="qr-file" class="upload-btn">📁 Upload QR dari Galeri</label>
+    <input type="file" id="qr-file" accept="image/*">
+  </div>
+
+  <div id="result-box" class="result-box">
+    <strong>Hasil:</strong><br>
+    <a id="result-link" href="#" target="_blank" style="color: #0056b3;"></a>
+    <button id="btn-redirect" class="btn-open">Buka Link</button>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof Html5QrcodeScanner === 'undefined') {
+      document.getElementById('reader').innerText = 'Gagal memuat library scanner. Periksa koneksi internet Anda.';
+      return;
     }
-    body {
-      background-color: #f4f6f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
+
+    const resultBox = document.getElementById('result-box');
+    const resultLink = document.getElementById('result-link');
+    const btnRedirect = document.getElementById('btn-redirect');
+    const fileInput = document.getElementById('qr-file');
+
+    function handleSuccess(decodedText) {
+      resultBox.style.display = 'block';
+      let url = decodedText;
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+      }
+      resultLink.innerText = decodedText;
+      resultLink.href = url;
+      btnRedirect.onclick = () => window.open(url, '_blank');
     }
-    .container {
-      background: #ffffff;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 480px;
-      text-align: center;
-    }
-    h2 {
-      margin-top: 0;
-      color: #333;
-    }
-    #reader {
-      width: 100%;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-    .upload-section {
-      margin: 15px 0;
-      padding: 15px;
-      border: 2px dashed #ccc;
-      border-radius: 8px;
-      background: #fafafa;
-    }
-    input[type="file"] {
-      display: none;
-    }
-    .custom-file-upload {
-      display: inline-block;
-      padding: 10px 20px;
-      cursor: pointer;
-      background-color: #4A90E2;
-      color: white;
-      border-radius: 6px;
-      font-weight: bold;
-      transition: background 0.3s;
-    }
-    .custom-file-upload:hover {
-      background-color: #357ABD;
-    }
-    .result-box {
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 8px;
-      background-color: #eef7ee;
-      border: 1px solid #c3e6cb;
-      display: none;
-      word-break: break-all;
-    }
-    .result-box h3 {
-      margin-top: 0;
-      color: #155724;
-    }
-    .result-link {
-      font-size: 16px;
-      color: #0066cc;
-      text-decoration: underline;
-      display: inline-block;
-      margin-bottom: 15px;
-    }
-    .btn-open {
+
+    const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } });
+    scanner.render(handleSuccess, () => {});
+
+    const fileScanner = new Html5Qrcode("reader");
+    fileInput.addEventListener('change', e => {
+      if (e.target.files.length === 0) return;
+      fileScanner.scanFile(e.target.files[0], true)
+        .then(handleSuccess)
+        .catch(() => alert("Gagal membaca QR Code dari gambar."));
+    });
+  });
+</script>
+
+</body>
+</html>
