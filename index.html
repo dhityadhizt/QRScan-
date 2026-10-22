@@ -3,98 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unduh Video Online - Solusi Instan</title>
-    <script src="https://tailwindcss.com"></script>
-</head>
-<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-4 font-sans">
-    
-    <main class="max-w-xl mx-auto w-full text-center mt-20 bg-slate-850 p-6 rounded-2xl border border-slate-700/50 shadow-xl">
-        <h1 class="text-2xl font-bold text-emerald-400 mb-2">Smart Downloader</h1>
-        <p class="text-slate-400 text-xs mb-6">Proses Instan Tanpa Pindah Halaman</p>
-        
-        <div class="flex flex-col gap-3">
-            <input type="url" id="inputUrl" placeholder="Tempel link video (TikTok, Reels, dll) di sini..." 
-                   class="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 text-white text-center">
-            
-            <button onclick="ekstrakVideo()" id="btnProses" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-xl transition-all text-sm tracking-wide">
-                Unduh Video
-            </button>
-        </div>
-
-        <!-- LOADING STATS -->
-        <div id="statusLoading" class="hidden mt-6 text-sm text-slate-400 animate-pulse">
-            Sedang mengambil data video langsung dari server...
-        </div>
-
-        <!-- TOMBOL DOWNLOAD ASLI (MUNCUL DI SINI) -->
-        <div id="areaHasil" class="hidden mt-6 bg-slate-800 p-4 rounded-xl text-center border border-slate-750">
-            <p class="text-xs text-emerald-400 mb-3 font-medium">✓ Video Siap Diunduh!</p>
-            <a id="linkDownloadMurni" href="#" target="_blank" download class="inline-block bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 font-extrabold px-6 py-3 rounded-lg text-xs shadow-md tracking-wide">
-                KLIK UNTUK SIMPAN VIDEO
-            </a>
-        </div>
-
-        <!-- NOTIFIKASI EROR -->
-        <div id="areaEror" class="hidden mt-4 text-xs text-rose-400 bg-rose-500/10 p-3 rounded-xl">
-            Gagal mengekstrak video. Pastikan link aktif atau coba platform video lainnya.
-        </div>
-    </main>
-
-    <footer class="text-center text-[10px] text-slate-600 py-6">
-        &copy; 2026 Smart Downloader. Bekerja langsung di GitHub Pages.
-    </footer>
-
-    <script>
-        async function ekstrakVideo() {
-            const urlTarget = document.getElementById('inputUrl').value.trim();
-            const btn = document.getElementById('btnProses');
-            const loading = document.getElementById('statusLoading');
-            const hasil = document.getElementById('areaHasil');
-            const eror = document.getElementById('areaEror');
-
-            // Reset Tampilan
-            hasil.classList.add('hidden');
-            eror.classList.add('hidden');
-
-            if (!urlTarget) {
-                alert('Mohon masukkan tautan video terlebih dahulu!');
-                return;
-            }
-
-            // Kunci tombol & aktifkan efek loading
-            btn.disabled = true;
-            loading.classList.remove('hidden');
-
-            try {
-                // MENGGUNAKAN API PROXY AMAN DAN BEBAS DARI BLOKIR CORS GITHUB PAGES
-                const apiGateway = `https://eu.org{encodeURIComponent(urlTarget)}`;
-                
-                const response = await fetch(apiGateway);
-                const data = await response.json();
-
-                // Deteksi tautan download murni dari struktur respons API
-                if (response.ok && data.result) {
-                    // Mendukung penyesuaian otomatis untuk video Tiktok/Instagram/YouTube shorts
-                    const fileUrl = data.result.video || data.result.noWatermark || data.result.url;
-                    
-                    if (fileUrl) {
-                        document.getElementById('linkDownloadMurni').href = fileUrl;
-                        hasil.classList.remove('hidden'); // Memunculkan tombol unduh di halaman Anda
-                    } else {
-                        eror.classList.remove('hidden');
-                    }
-                } else {
-                    eror.classList.remove('hidden');
-                }
-            } catch (e) {
-                console.error(e);
-                eror.classList.remove('hidden');
-            } finally {
-                // Kembalikan tombol ke kondisi semula
-                btn.disabled = false;
-                loading.classList.add('hidden');
-            }
+    <title>QR Code Scanner & Upload</title>
+    <!-- Library Pemindai QR -->
+    <script src="https://unpkg.com" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
         }
-    </script>
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .tab-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            cursor: pointer;
+            border: none;
+            background: #e9ecef;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+            background: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        #reader {
+            width: 100%;
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .upload-box {
+            border: 2px dashed #6c757d;
+            padding: 30px 20px;
+            border-radius: 8px;
+            background: #f1f3f5;
+            cursor: pointer;
+        }
+        .upload-box input {
+            display: none;
+        }
+        .result-box {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #e9ecef;
+            min-height: 50px;
+        }
+        .btn-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 24px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+            word-break: break-all;
+        }
+        .btn-link:hover {
+            background-color: #218838;
+        }
+        .loading-text {
+            color: #007bff;
+            font-weight: bold;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>QR Code Scanner</h2>
+    
+    <!-- Navigasi Tab Kamera / Galeri -->
+    <div class="tab-buttons">
+        <button class="tab-btn active" onclick="switchTab('camera-tab')">📷 Kamera Live</button>
+        <button class="tab-btn" onclick="switchTab('gallery-tab')">🖼️ Upload Galeri</button>
+    </div>
+
+    <!-- Konten Tab Kamera -->
+    <div id="camera-tab" class="tab-content active">
+        <p>Arahkan kamera ke QR Code</p>
+        <div id="reader"></div>
+    </div>
+
+    <!-- Konten Tab Galeri -->
+    <div id="gallery-tab" class="tab-content">
+        <p>Pilih atau unggah gambar QR dari galeri perangkat Anda</p>
+        <div class="upload-box" onclick="document.getElementById('qr-input-file').click()">
+            <span id="upload-label">📁 Klik untuk pilih gambar QR</span>
+            <input type="file" id="qr-input-file" accept="image/*">
+        </div>
+    </div>
+    
+    <!-- Area Hasil & Pengalihan -->
+    <div class="result-box">
+        <div id="status-label" style="color: #6c757d;">Menunggu QR Code terdeteksi...</div>
+        <div id="action-area"></div>
+    </div>
+</div>
+
+<script>
+    let isProcessing = false;
+    let html5QrcodeScanner;
+    const html5QrCode = new Html5Qrcode("status-label"); // Instance tersembunyi untuk scan file
+
+    // 1. Logika untuk Sukses Scan (Kamera maupun File)
+    function handleSuccess(decodedText) {
+        if (isProcessing) return; 
+        isProcessing = true;
+
+        // Matikan scanner kamera jika aktif
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear().catch(err => console.error(err));
+        }
+
+        document.getElementById('status-label').innerHTML = `
+            <span class="loading-text">QR Terdeteksi! Mengalihkan ke halaman tujuan...</span>
+        `;
+        
+        document.getElementById('action-area').innerHTML = `
+            <a class="btn-link" href="${decodedText}">Buka Link Manual: ${decodedText}</a>
+        `;
+        
+        // redirect ke link
+        window.location.href = decodedText;
+    }
+
+    // 2. Setup Scanner Kamera
+    function startCameraScanner() {
+        html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", 
+            { fps: 10, qrbox: {width: 250, height: 250} },
+            /* verbose= */ false
+        );
+        html5QrcodeScanner.render(handleSuccess, (err) => {});
+    }
+
+    // 3. Setup Pembaca File Gambar / Galeri
+    document.getElementById('qr-input-file').addEventListener('change', e => {
+        if (e.target.files.length == 0) return;
+        
+        const imageFile = e.target.files[0];
+        document.getElementById('upload-label').innerText = `Memproses: ${imageFile.name}...`;
+
+        // Membaca file gambar menggunakan library html5-qrcode
+        html5QrCode.scanFile(imageFile, true)
+            .then(decodedText => {
+                handleSuccess(decodedText);
+            })
+            .catch(err => {
+                document.getElementById('upload-label').innerText = `📁 Klik untuk pilih gambar QR`;
+                document.getElementById('status-label').innerHTML = `<span style="color:red;">Gagal membaca gambar. Pastikan QR code terlihat jelas.</span>`;
+            });
+    });
+
+    // 4. Fungsi Pindah Tab
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+        
+        // Jika pindah ke tab kamera, jalankan ulang kameranya
+        if (tabId === 'camera-tab' && !isProcessing) {
+            if (html5QrcodeScanner) html5QrcodeScanner.clear().catch(() => {});
+            startCameraScanner();
+        }
+    }
+
+    // Jalankan kamera otomatis saat pertama kali dibuka
+    startCameraScanner();
+</script>
+
 </body>
-</html> 
+</html>
