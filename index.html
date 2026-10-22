@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Code Scanner & Reader</title>
+  <title>QR Code Super Tool - Scanner & Generator</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Library HTML5-QRCode -->
+  <!-- Library HTML5-QRCode untuk Scan -->
   <script src="https://unpkg.com/html5-qrcode" crossorigin="anonymous"></script>
+  <!-- Library QRCodeJS untuk Membuat/Generate QR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
   <style>
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -22,78 +24,137 @@
 
   <div class="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden p-6 text-white">
     
-    <!-- Header -->
+    <!-- Main Header -->
     <div class="text-center mb-5">
-      <h1 class="text-2xl font-bold tracking-wide">QR Scanner</h1>
-      <p class="text-xs text-slate-300 mt-1">Scan langsung via kamera atau upload dari galeri</p>
+      <h1 class="text-2xl font-bold tracking-wide">QR Code Tool</h1>
+      <p class="text-xs text-slate-300 mt-1">Pindai atau Buat QR Code dengan mudah</p>
     </div>
 
-    <!-- Tab Navigation -->
-    <div class="flex bg-slate-800/60 p-1 rounded-xl mb-5 border border-white/10">
-      <button id="tab-camera" onclick="switchTab('camera')" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-indigo-600 text-white shadow-lg flex items-center justify-center space-x-1.5">
-        <span>📷</span> <span>Kamera</span>
+    <!-- Main Mode Navigation (Scan vs Generator) -->
+    <div class="flex bg-black/40 p-1 rounded-xl mb-6 border border-white/10">
+      <button id="mode-scan" onclick="switchMainMode('scan')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-lg flex items-center justify-center space-x-1.5">
+        <span>🔍</span> <span>Scan QR</span>
       </button>
-      <button id="tab-gallery" onclick="switchTab('gallery')" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1.5">
-        <span>📁</span> <span>Galeri</span>
+      <button id="mode-generate" onclick="switchMainMode('generate')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1.5">
+        <span>✨</span> <span>Buat QR</span>
       </button>
     </div>
 
-    <!-- Section Kamera -->
-    <div id="section-camera" class="space-y-3">
-      <!-- Area Kamera -->
-      <div class="relative w-full overflow-hidden rounded-xl bg-black border border-white/10 min-h-[260px] flex items-center justify-center">
-        <div id="reader" class="w-full"></div>
+    <!-- ================================================================= -->
+    <!-- SECTION 1: SCANNER QR -->
+    <!-- ================================================================= -->
+    <div id="main-section-scan" class="space-y-4">
+      <!-- Tab Scanner Navigation (Kamera vs Galeri) -->
+      <div class="flex bg-slate-800/60 p-1 rounded-xl border border-white/10">
+        <button id="tab-camera" onclick="switchScanTab('camera')" class="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all bg-indigo-500 text-white flex items-center justify-center space-x-1">
+          <span>📷 Kamera</span>
+        </button>
+        <button id="tab-gallery" onclick="switchScanTab('gallery')" class="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1">
+          <span>📁 Galeri</span>
+        </button>
       </div>
 
-      <!-- Kontrol Kamera (Tombol Switch Kamera & Status) -->
-      <div class="flex items-center justify-between bg-white/5 px-4 py-2.5 rounded-xl border border-white/10">
-        <span id="camera-status" class="text-xs text-indigo-300 font-medium">Kamera Belakang Aktif</span>
-        <button onclick="toggleCameraPosition()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow transition flex items-center space-x-1.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-          <span>Putar Kamera</span>
+      <!-- Section Kamera -->
+      <div id="section-camera" class="space-y-3">
+        <div class="relative w-full overflow-hidden rounded-xl bg-black border border-white/10 min-h-[250px] flex items-center justify-center">
+          <div id="reader" class="w-full"></div>
+        </div>
+        <div class="flex items-center justify-between bg-white/5 px-4 py-2 rounded-xl border border-white/10">
+          <span id="camera-status" class="text-xs text-indigo-300 font-medium">Kamera Belakang Aktif</span>
+          <button onclick="toggleCameraPosition()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow transition flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <span>Putar Kamera</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Section Galeri -->
+      <div id="section-gallery" class="hidden space-y-3">
+        <label for="qr-file" class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/30 rounded-xl cursor-pointer bg-white/5 hover:bg-white/10 transition">
+          <div class="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
+            <svg class="w-10 h-10 mb-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+            <p class="mb-1 text-sm text-slate-200"><span class="font-semibold">Upload Foto QR</span></p>
+            <p class="text-xs text-slate-400">PNG, JPG, atau WEBP</p>
+          </div>
+          <input type="file" id="qr-file" accept="image/*" class="hidden" />
+        </label>
+      </div>
+
+      <!-- Hasil Scan -->
+      <div id="result-container" class="hidden mt-4 p-4 bg-emerald-950/80 border border-emerald-500/30 rounded-xl animate-fade-in">
+        <div class="flex items-center space-x-2 mb-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+          <h3 class="text-xs font-semibold text-emerald-300 uppercase tracking-wider">Hasil Scan:</h3>
+        </div>
+        <div class="bg-black/30 p-2.5 rounded-lg mb-3 break-all">
+          <a id="result-link" href="#" target="_blank" class="text-indigo-400 hover:text-indigo-300 text-xs font-medium underline"></a>
+        </div>
+        <button id="btn-redirect" class="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-semibold rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center space-x-2">
+          <span>Buka Tautan</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
         </button>
       </div>
     </div>
 
-    <!-- Section Galeri (Hidden by default) -->
-    <div id="section-gallery" class="hidden space-y-3">
-      <label for="qr-file" class="flex flex-col items-center justify-center w-full h-52 border-2 border-dashed border-white/30 rounded-xl cursor-pointer bg-white/5 hover:bg-white/10 transition">
-        <div class="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
-          <svg class="w-10 h-10 mb-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-          <p class="mb-1 text-sm text-slate-200"><span class="font-semibold">Klik untuk upload foto QR</span></p>
-          <p class="text-xs text-slate-400">Mendukung format PNG, JPG, WEBP</p>
+    <!-- ================================================================= -->
+    <!-- SECTION 2: GENERATOR / PEMBUAT QR -->
+    <!-- ================================================================= -->
+    <div id="main-section-generate" class="hidden space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Isi Teks atau Link URL:</label>
+        <textarea id="qr-input-text" rows="3" placeholder="Masukkan link website, teks, atau nomor WhatsApp..." class="w-full p-3 rounded-xl bg-black/40 border border-white/20 text-white text-xs focus:outline-none focus:border-indigo-500 transition resize-none"></textarea>
+      </div>
+
+      <!-- Pilihan Warna QR -->
+      <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/10">
+        <div class="flex items-center space-x-2">
+          <label class="text-xs text-slate-300 font-medium">Warna QR:</label>
+          <input type="color" id="qr-color-dark" value="#000000" class="w-7 h-7 rounded cursor-pointer bg-transparent border-0">
         </div>
-        <input type="file" id="qr-file" accept="image/*" class="hidden" />
-      </label>
-    </div>
-
-    <!-- Result Box (Hidden until scanned) -->
-    <div id="result-container" class="hidden mt-5 p-4 bg-emerald-950/80 border border-emerald-500/30 rounded-xl animate-fade-in">
-      <div class="flex items-center space-x-2 mb-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-        <h3 class="text-xs font-semibold text-emerald-300 uppercase tracking-wider">Berhasil Mendeteksi QR!</h3>
-      </div>
-      
-      <!-- Link Teks -->
-      <div class="bg-black/30 p-2.5 rounded-lg mb-3 break-all">
-        <a id="result-link" href="#" target="_blank" class="text-indigo-400 hover:text-indigo-300 text-xs font-medium underline"></a>
+        <div class="flex items-center space-x-2">
+          <label class="text-xs text-slate-300 font-medium">Latar:</label>
+          <input type="color" id="qr-color-light" value="#ffffff" class="w-7 h-7 rounded cursor-pointer bg-transparent border-0">
+        </div>
       </div>
 
-      <!-- Tombol Aksi Buka Link -->
-      <button id="btn-redirect" class="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-semibold rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center space-x-2">
-        <span>Buka Tautan Otomatis</span>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+      <!-- Tombol Generate -->
+      <button onclick="generateQRCode()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg transition transform active:scale-95">
+        Buat QR Code
       </button>
+
+      <!-- Display Area Hasil QR Code -->
+      <div id="gen-result-box" class="hidden flex flex-col items-center justify-center p-4 bg-white/5 border border-white/10 rounded-xl space-y-4 animate-fade-in">
+        <div id="qrcode-display" class="p-3 bg-white rounded-xl shadow-md"></div>
+
+        <!-- Tombol Download & Copy -->
+        <div class="flex w-full space-x-2">
+          <button onclick="downloadQRCode()" class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow transition flex items-center justify-center space-x-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>Download</span>
+          </button>
+          <button onclick="copyQRCode()" class="flex-1 py-2 px-3 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg shadow transition flex items-center justify-center space-x-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            <span id="btn-copy-text">Salin Gambar</span>
+          </button>
+        </div>
+      </div>
     </div>
 
   </div>
 
   <script>
+    // Elements Navigasi
+    const modeScan = document.getElementById('mode-scan');
+    const modeGenerate = document.getElementById('mode-generate');
+    const mainSectionScan = document.getElementById('main-section-scan');
+    const mainSectionGenerate = document.getElementById('main-section-generate');
+
     const tabCamera = document.getElementById('tab-camera');
     const tabGallery = document.getElementById('tab-gallery');
     const sectionCamera = document.getElementById('section-camera');
     const sectionGallery = document.getElementById('section-gallery');
-    
+
+    // Elements Scanner
     const resultContainer = document.getElementById('result-container');
     const resultLink = document.getElementById('result-link');
     const btnRedirect = document.getElementById('btn-redirect');
@@ -101,20 +162,38 @@
     const cameraStatus = document.getElementById('camera-status');
 
     let html5QrCode = null;
-    let useFrontCamera = false; // Default: kamera belakang (environment)
+    let useFrontCamera = false;
     let isCameraRunning = false;
+    let qrcodeGeneratorInstance = null;
 
-    // Fungsi Navigasi Tab
-    function switchTab(tab) {
+    // Switch Antara Mode Scan dan Mode Generate
+    function switchMainMode(mode) {
+      if (mode === 'scan') {
+        modeScan.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-lg flex items-center justify-center space-x-1.5";
+        modeGenerate.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1.5";
+        mainSectionScan.classList.remove('hidden');
+        mainSectionGenerate.classList.add('hidden');
+        startCamera();
+      } else {
+        modeGenerate.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-lg flex items-center justify-center space-x-1.5";
+        modeScan.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1.5";
+        mainSectionGenerate.classList.remove('hidden');
+        mainSectionScan.classList.add('hidden');
+        stopCamera();
+      }
+    }
+
+    // Switch Tab Scanner (Kamera vs Galeri)
+    function switchScanTab(tab) {
       if (tab === 'camera') {
-        tabCamera.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-indigo-600 text-white shadow-lg flex items-center justify-center space-x-1.5";
-        tabGallery.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1.5";
+        tabCamera.className = "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all bg-indigo-500 text-white flex items-center justify-center space-x-1";
+        tabGallery.className = "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1";
         sectionCamera.classList.remove('hidden');
         sectionGallery.classList.add('hidden');
         startCamera();
       } else {
-        tabGallery.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-indigo-600 text-white shadow-lg flex items-center justify-center space-x-1.5";
-        tabCamera.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1.5";
+        tabGallery.className = "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all bg-indigo-500 text-white flex items-center justify-center space-x-1";
+        tabCamera.className = "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center space-x-1";
         sectionGallery.classList.remove('hidden');
         sectionCamera.classList.add('hidden');
         stopCamera();
@@ -124,93 +203,152 @@
     // Handle Hasil Scan
     function handleScanResult(decodedText) {
       resultContainer.classList.remove('hidden');
-      
       let formattedUrl = decodedText;
       if (!/^https?:\/\//i.test(formattedUrl)) {
         formattedUrl = 'https://' + formattedUrl;
       }
-
       resultLink.innerText = decodedText;
       resultLink.href = formattedUrl;
-      
       btnRedirect.onclick = function() {
         window.open(formattedUrl, '_blank');
       };
     }
 
-    // Inisialisasi & Start Kamera
+    // Kamera Controls
     function startCamera() {
       if (isCameraRunning) return;
-
       if (!html5QrCode) {
         html5QrCode = new Html5Qrcode("reader");
       }
-
       const facingModeConfig = useFrontCamera ? "user" : "environment";
       cameraStatus.innerText = useFrontCamera ? "Kamera Depan Aktif" : "Kamera Belakang Aktif";
 
       html5QrCode.start(
         { facingMode: facingModeConfig },
-        { fps: 10, qrbox: { width: 220, height: 220 } },
-        (decodedText) => {
-          handleScanResult(decodedText);
-        },
-        (errorMessage) => {
-          // Abaikan error frame kosong
-        }
+        { fps: 10, qrbox: { width: 200, height: 200 } },
+        handleScanResult,
+        () => {}
       ).then(() => {
         isCameraRunning = true;
       }).catch(err => {
-        console.error("Gagal membuka kamera:", err);
-        cameraStatus.innerText = "Izin kamera ditolak / tidak tersedia";
+        cameraStatus.innerText = "Kamera tidak aktif/izin ditolak";
       });
     }
 
-    // Stop Kamera
     function stopCamera() {
       if (html5QrCode && isCameraRunning) {
         html5QrCode.stop().then(() => {
           isCameraRunning = false;
-        }).catch(err => {
-          console.error("Gagal mematikan kamera:", err);
-        });
+        }).catch(err => console.error(err));
       }
     }
 
-    // Tombol Toggle Kamera Depan/Belakang
     function toggleCameraPosition() {
       useFrontCamera = !useFrontCamera;
       if (isCameraRunning) {
         html5QrCode.stop().then(() => {
           isCameraRunning = false;
           startCamera();
-        }).catch(err => {
-          console.error("Gagal switch kamera:", err);
         });
       } else {
         startCamera();
       }
     }
 
-    // Event Listener Upload File Galeri
+    // Scan File dari Galeri
     fileInput.addEventListener('change', e => {
       if (e.target.files.length === 0) return;
-      const imageFile = e.target.files[0];
-      
       stopCamera();
-
       const scannerFile = new Html5Qrcode("reader");
-      scannerFile.scanFile(imageFile, true)
+      scannerFile.scanFile(e.target.files[0], true)
         .then(decodedText => {
           handleScanResult(decodedText);
           scannerFile.clear();
         })
-        .catch(err => {
-          alert("QR Code tidak ditemukan pada gambar. Pastikan gambar jelas.");
-        });
+        .catch(() => alert("QR Code tidak ditemukan pada gambar."));
     });
 
-    // Jalankan kamera saat halaman pertama kali dimuat
+    // =================================================================
+    // LOGIK PEMBUAT (GENERATOR) QR CODE
+    // =================================================================
+    function generateQRCode() {
+      const text = document.getElementById('qr-input-text').value.trim();
+      const colorDark = document.getElementById('qr-color-dark').value;
+      const colorLight = document.getElementById('qr-color-light').value;
+      const displayContainer = document.getElementById('qrcode-display');
+      const resultBox = document.getElementById('gen-result-box');
+
+      if (!text) {
+        alert("Harap masukkan teks atau URL terlebih dahulu!");
+        return;
+      }
+
+      // Bersihkan display sebelumnya
+      displayContainer.innerHTML = "";
+
+      // Buat QR Code Baru
+      qrcodeGeneratorInstance = new QRCode(displayContainer, {
+        text: text,
+        width: 180,
+        height: 180,
+        colorDark: colorDark,
+        colorLight: colorLight,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      resultBox.classList.remove('hidden');
+    }
+
+    // Fungsi Download QR Code Gambar
+    function downloadQRCode() {
+      const img = document.querySelector('#qrcode-display img');
+      const canvas = document.querySelector('#qrcode-display canvas');
+
+      let imageSrc = "";
+      if (img && img.src) {
+        imageSrc = img.src;
+      } else if (canvas) {
+        imageSrc = canvas.toDataURL("image/png");
+      }
+
+      if (!imageSrc) return;
+
+      const link = document.createElement('a');
+      link.href = imageSrc;
+      link.download = 'qrcode.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Fungsi Salin Gambar QR Code ke Clipboard
+    async function copyQRCode() {
+      const img = document.querySelector('#qrcode-display img');
+      const canvas = document.querySelector('#qrcode-display canvas');
+      const btnCopyText = document.getElementById('btn-copy-text');
+
+      try {
+        let blob;
+        if (canvas) {
+          blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        } else if (img) {
+          const response = await fetch(img.src);
+          blob = await response.blob();
+        }
+
+        if (blob) {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          btnCopyText.innerText = "Tersalin!";
+          setTimeout(() => { btnCopyText.innerText = "Salin Gambar"; }, 2000);
+        }
+      } catch (err) {
+        alert("Gagal menyalin gambar secara otomatis. Anda bisa klik tahan/klik kanan pada gambar QR lalu pilih 'Salin Gambar'.");
+      }
+    }
+
+    // Inisialisasi awal
     window.addEventListener('DOMContentLoaded', () => {
       startCamera();
     });
